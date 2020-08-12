@@ -1,0 +1,5 @@
+# build artifacts
+*.wasm
+
+# sounds
+assets/sounds/*
