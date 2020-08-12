@@ -353,9 +353,7 @@ func (*IntroScene) Setup(u engo.Updater) {
 	griffTaunt.Disable()
 	//            Taunt />
 	//        Menu Special />
-	type item struct {
-		Name, Flavor string
-	}
+	//        < Menu Items
 	//            < candy bar
 	griffItem1 := selection{BasicEntity: ecs.NewBasic()}
 	griffItem1.Drawable = common.Text{
@@ -486,7 +484,69 @@ func (*IntroScene) Setup(u engo.Updater) {
 	//            popsicle />
 	//        Menu Items />
 	//        <Menu Act
-
+	//            < look
+	griffLook := selection{BasicEntity: ecs.NewBasic()}
+	griffLook.Drawable = common.Text{
+		Font: griffFont,
+		Text: "Look",
+	}
+	griffLook.SetZIndex(6)
+	griffLook.Scale = engo.Point{X: 0.4, Y: 0.4}
+	griffLook.Position = engo.Point{X: 55, Y: 175}
+	griffLook.CursorComponent.ACallback = func() {
+		fmt.Println("eye spy")
+	}
+	griffLook.Hidden = true
+	w.AddEntity(&griffLook)
+	griffLook.Disable()
+	//            candy bar />
+	//            < stick
+	griffDance := selection{BasicEntity: ecs.NewBasic()}
+	griffDance.Drawable = common.Text{
+		Font: griffFont,
+		Text: "Dance",
+	}
+	griffDance.SetZIndex(6)
+	griffDance.Scale = engo.Point{X: 0.4, Y: 0.4}
+	griffDance.Position = engo.Point{X: 355, Y: 175}
+	griffDance.CursorComponent.ACallback = func() {
+		fmt.Println("throw the stick")
+	}
+	griffDance.Hidden = true
+	w.AddEntity(&griffDance)
+	griffDance.Disable()
+	//            stick />
+	//            < salt
+	griffItem3 := selection{BasicEntity: ecs.NewBasic()}
+	griffItem3.Drawable = common.Text{
+		Font: griffFont,
+		Text: "Salt",
+	}
+	griffItem3.SetZIndex(6)
+	griffItem3.Scale = engo.Point{X: 0.4, Y: 0.4}
+	griffItem3.Position = engo.Point{X: 55, Y: 235}
+	griffItem3.CursorComponent.ACallback = func() {
+		fmt.Println("salt")
+	}
+	griffItem3.Hidden = true
+	w.AddEntity(&griffItem3)
+	griffItem3.Disable()
+	//            salt />
+	//            < saltwater toffee
+	griffItem4 := selection{BasicEntity: ecs.NewBasic()}
+	griffItem4.Drawable = common.Text{
+		Font: griffFont,
+		Text: "Saltwater toffee",
+	}
+	griffItem4.SetZIndex(6)
+	griffItem4.Scale = engo.Point{X: 0.4, Y: 0.4}
+	griffItem4.Position = engo.Point{X: 355, Y: 235}
+	griffItem4.CursorComponent.ACallback = func() {
+		fmt.Println("Sweeter than salty?")
+	}
+	griffItem4.Hidden = true
+	w.AddEntity(&griffItem4)
+	griffItem4.Disable()
 	//        Menu Act />
 	//        <ACTION A
 	griffA := playerSelectableSprite{BasicEntity: ecs.NewBasic()}

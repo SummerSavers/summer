@@ -3,3 +3,4 @@
 
 # sounds
 assets/sounds/*
+assets/bindata.go
