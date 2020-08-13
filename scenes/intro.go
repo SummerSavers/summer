@@ -53,6 +53,8 @@ var files = []string{
 	"combat/Cent/cencard.png",
 	"combat/Cent/font.ttf",
 	"combat/BattleBoxes.png",
+	"sounds/bloodmouthghost/log.wav",
+	"sounds/griff/log.wav",
 }
 
 func (*IntroScene) Preload() {
@@ -99,8 +101,7 @@ func (*IntroScene) Setup(u engo.Updater) {
 
 	var cursorable *systems.CursorAble
 	var notcursorable *systems.NotCursorAble
-	var curSys systems.CursorSystem
-	w.AddSystemInterface(&curSys, cursorable, notcursorable)
+	w.AddSystemInterface(&systems.CursorSystem{}, cursorable, notcursorable)
 	// SYSTEMS />
 
 	// < BACKGROUNDS
@@ -200,6 +201,11 @@ func (*IntroScene) Setup(u engo.Updater) {
 	//    < sprite sheet
 	bmgSpritesheet := common.NewSpritesheetWithBorderFromFile(files[3], 64, 64, 1, 1)
 	//    sprite sheet />
+	//    < sounds
+	bmgLogClip := audio{BasicEntity: ecs.NewBasic()}
+	bmgLogClip.AudioComponent.Player, _ = common.LoadedPlayer(files[35])
+	w.AddEntity(&bmgLogClip)
+	//    sounds />
 	//    < sprite
 	bmgSprite := baddieSprite{BasicEntity: ecs.NewBasic()}
 	bmgSprite.Drawable = bmgSpritesheet.Drawable(0)
@@ -225,6 +231,11 @@ func (*IntroScene) Setup(u engo.Updater) {
 	}
 	griffFont.CreatePreloaded()
 	//    Load font />
+	//    < Sounds
+	griffLogClip := audio{BasicEntity: ecs.NewBasic()}
+	griffLogClip.AudioComponent.Player, _ = common.LoadedPlayer(files[36])
+	w.AddEntity(&griffLogClip)
+	//    Sounds />
 	//    < CARD
 	griffCard := playerSelectableSprite{BasicEntity: ecs.NewBasic()}
 	griffCard.Drawable, _ = common.LoadedSprite(files[4])
@@ -297,7 +308,7 @@ func (*IntroScene) Setup(u engo.Updater) {
 	griffBash.SetZIndex(6)
 	griffBash.Scale = engo.Point{X: 0.4, Y: 0.4}
 	griffBash.Position = engo.Point{X: 55, Y: 175}
-	griffBash.CursorComponent.ACallback = func() {
+	griffBash.CursorComponent.ACallback = func(s *systems.CursorSystem) {
 		fmt.Println("bash")
 	}
 	griffBash.Hidden = true
@@ -313,7 +324,7 @@ func (*IntroScene) Setup(u engo.Updater) {
 	griffShield.SetZIndex(6)
 	griffShield.Scale = engo.Point{X: 0.4, Y: 0.4}
 	griffShield.Position = engo.Point{X: 355, Y: 175}
-	griffShield.CursorComponent.ACallback = func() {
+	griffShield.CursorComponent.ACallback = func(s *systems.CursorSystem) {
 		fmt.Println("shield")
 	}
 	griffShield.Hidden = true
@@ -329,7 +340,7 @@ func (*IntroScene) Setup(u engo.Updater) {
 	griffCover.SetZIndex(6)
 	griffCover.Scale = engo.Point{X: 0.4, Y: 0.4}
 	griffCover.Position = engo.Point{X: 55, Y: 235}
-	griffCover.CursorComponent.ACallback = func() {
+	griffCover.CursorComponent.ACallback = func(s *systems.CursorSystem) {
 		fmt.Println("cover")
 	}
 	griffCover.Hidden = true
@@ -345,7 +356,7 @@ func (*IntroScene) Setup(u engo.Updater) {
 	griffTaunt.SetZIndex(6)
 	griffTaunt.Scale = engo.Point{X: 0.4, Y: 0.4}
 	griffTaunt.Position = engo.Point{X: 355, Y: 235}
-	griffTaunt.CursorComponent.ACallback = func() {
+	griffTaunt.CursorComponent.ACallback = func(s *systems.CursorSystem) {
 		fmt.Println("taunt")
 	}
 	griffTaunt.Hidden = true
@@ -354,7 +365,7 @@ func (*IntroScene) Setup(u engo.Updater) {
 	//            Taunt />
 	//        Menu Special />
 	//        < Menu Items
-	//            < candy bar
+	//            < Item 1
 	griffItem1 := selection{BasicEntity: ecs.NewBasic()}
 	griffItem1.Drawable = common.Text{
 		Font: griffFont,
@@ -363,14 +374,18 @@ func (*IntroScene) Setup(u engo.Updater) {
 	griffItem1.SetZIndex(6)
 	griffItem1.Scale = engo.Point{X: 0.4, Y: 0.4}
 	griffItem1.Position = engo.Point{X: 55, Y: 175}
-	griffItem1.CursorComponent.ACallback = func() {
-		fmt.Println("candy yum yum")
+	griffItem1.CursorComponent.ACallback = func(s *systems.CursorSystem) {
+		engo.Mailbox.Dispatch(systems.CombatLogMessage{
+			Msg:  "candy yum yum",
+			Fnt:  griffFont,
+			Clip: griffLogClip.Player,
+		})
 	}
-	griffItem1.Hidden = true
+	//griffItem1.Hidden = true
 	w.AddEntity(&griffItem1)
-	griffItem1.Disable()
-	//            candy bar />
-	//            < stick
+	//griffItem1.Disable()
+	//            Item 1 />
+	//            < Item 2
 	griffItem2 := selection{BasicEntity: ecs.NewBasic()}
 	griffItem2.Drawable = common.Text{
 		Font: griffFont,
@@ -379,14 +394,14 @@ func (*IntroScene) Setup(u engo.Updater) {
 	griffItem2.SetZIndex(6)
 	griffItem2.Scale = engo.Point{X: 0.4, Y: 0.4}
 	griffItem2.Position = engo.Point{X: 355, Y: 175}
-	griffItem2.CursorComponent.ACallback = func() {
+	griffItem2.CursorComponent.ACallback = func(s *systems.CursorSystem) {
 		fmt.Println("throw the stick")
 	}
-	griffItem2.Hidden = true
+	//griffItem2.Hidden = true
 	w.AddEntity(&griffItem2)
-	griffItem2.Disable()
-	//            stick />
-	//            < salt
+	//griffItem2.Disable()
+	//            Item 2 />
+	//            < Item 3
 	griffItem3 := selection{BasicEntity: ecs.NewBasic()}
 	griffItem3.Drawable = common.Text{
 		Font: griffFont,
@@ -395,30 +410,30 @@ func (*IntroScene) Setup(u engo.Updater) {
 	griffItem3.SetZIndex(6)
 	griffItem3.Scale = engo.Point{X: 0.4, Y: 0.4}
 	griffItem3.Position = engo.Point{X: 55, Y: 235}
-	griffItem3.CursorComponent.ACallback = func() {
+	griffItem3.CursorComponent.ACallback = func(s *systems.CursorSystem) {
 		fmt.Println("salt")
 	}
-	griffItem3.Hidden = true
+	//griffItem3.Hidden = true
 	w.AddEntity(&griffItem3)
-	griffItem3.Disable()
-	//            salt />
-	//            < saltwater toffee
+	//griffItem3.Disable()
+	//            Item 3 />
+	//            < Item 4
 	griffItem4 := selection{BasicEntity: ecs.NewBasic()}
 	griffItem4.Drawable = common.Text{
 		Font: griffFont,
-		Text: "Saltwater toffee",
+		Text: "Saltwater taffy",
 	}
 	griffItem4.SetZIndex(6)
 	griffItem4.Scale = engo.Point{X: 0.4, Y: 0.4}
 	griffItem4.Position = engo.Point{X: 355, Y: 235}
-	griffItem4.CursorComponent.ACallback = func() {
+	griffItem4.CursorComponent.ACallback = func(s *systems.CursorSystem) {
 		fmt.Println("Sweeter than salty?")
 	}
-	griffItem4.Hidden = true
+	//griffItem4.Hidden = true
 	w.AddEntity(&griffItem4)
-	griffItem4.Disable()
-	//            saltwater toffee />
-	//            < sea salt
+	//griffItem4.Disable()
+	//            Item 4 />
+	//            < Item 5
 	griffItem5 := selection{BasicEntity: ecs.NewBasic()}
 	griffItem5.Drawable = common.Text{
 		Font: griffFont,
@@ -427,30 +442,30 @@ func (*IntroScene) Setup(u engo.Updater) {
 	griffItem5.SetZIndex(6)
 	griffItem5.Scale = engo.Point{X: 0.4, Y: 0.4}
 	griffItem5.Position = engo.Point{X: 55, Y: 175}
-	griffItem5.CursorComponent.ACallback = func() {
+	griffItem5.CursorComponent.ACallback = func(s *systems.CursorSystem) {
 		fmt.Println("For witchcraft, exorcisms, and baking!")
 	}
 	griffItem5.Hidden = true
 	w.AddEntity(&griffItem5)
 	griffItem5.Disable()
-	//            sea salt />
-	//            < recorder
+	//            Item 5 />
+	//            < Item 6
 	griffItem6 := selection{BasicEntity: ecs.NewBasic()}
 	griffItem6.Drawable = common.Text{
 		Font: griffFont,
-		Text: "Recorder",
+		Text: "Sportsade",
 	}
 	griffItem6.SetZIndex(6)
 	griffItem6.Scale = engo.Point{X: 0.4, Y: 0.4}
 	griffItem6.Position = engo.Point{X: 355, Y: 175}
-	griffItem6.CursorComponent.ACallback = func() {
-		fmt.Println("hot cross buns")
+	griffItem6.CursorComponent.ACallback = func(s *systems.CursorSystem) {
+		fmt.Println("Grapey and salty!")
 	}
 	griffItem6.Hidden = true
 	w.AddEntity(&griffItem6)
 	griffItem6.Disable()
-	//            recorder />
-	//            < salt
+	//            Item 6 />
+	//            < Item 7
 	griffItem7 := selection{BasicEntity: ecs.NewBasic()}
 	griffItem7.Drawable = common.Text{
 		Font: griffFont,
@@ -459,94 +474,32 @@ func (*IntroScene) Setup(u engo.Updater) {
 	griffItem7.SetZIndex(6)
 	griffItem7.Scale = engo.Point{X: 0.4, Y: 0.4}
 	griffItem7.Position = engo.Point{X: 55, Y: 235}
-	griffItem7.CursorComponent.ACallback = func() {
+	griffItem7.CursorComponent.ACallback = func(s *systems.CursorSystem) {
 		fmt.Println("salt")
 	}
 	griffItem7.Hidden = true
 	w.AddEntity(&griffItem7)
 	griffItem7.Disable()
-	//            salt />
-	//            < popsicle
+	//            Item 7 />
+	//            < Item 8
 	griffItem8 := selection{BasicEntity: ecs.NewBasic()}
 	griffItem8.Drawable = common.Text{
 		Font: griffFont,
-		Text: "Popsicle",
+		Text: "Sportsade",
 	}
 	griffItem8.SetZIndex(6)
 	griffItem8.Scale = engo.Point{X: 0.4, Y: 0.4}
 	griffItem8.Position = engo.Point{X: 355, Y: 235}
-	griffItem8.CursorComponent.ACallback = func() {
-		fmt.Println("it melted")
+	griffItem8.CursorComponent.ACallback = func(s *systems.CursorSystem) {
+		fmt.Println("salty")
 	}
 	griffItem8.Hidden = true
 	w.AddEntity(&griffItem8)
 	griffItem8.Disable()
-	//            popsicle />
+	//            Item 8 />
 	//        Menu Items />
 	//        <Menu Act
-	//            < look
-	griffLook := selection{BasicEntity: ecs.NewBasic()}
-	griffLook.Drawable = common.Text{
-		Font: griffFont,
-		Text: "Look",
-	}
-	griffLook.SetZIndex(6)
-	griffLook.Scale = engo.Point{X: 0.4, Y: 0.4}
-	griffLook.Position = engo.Point{X: 55, Y: 175}
-	griffLook.CursorComponent.ACallback = func() {
-		fmt.Println("eye spy")
-	}
-	griffLook.Hidden = true
-	w.AddEntity(&griffLook)
-	griffLook.Disable()
-	//            candy bar />
-	//            < stick
-	griffDance := selection{BasicEntity: ecs.NewBasic()}
-	griffDance.Drawable = common.Text{
-		Font: griffFont,
-		Text: "Dance",
-	}
-	griffDance.SetZIndex(6)
-	griffDance.Scale = engo.Point{X: 0.4, Y: 0.4}
-	griffDance.Position = engo.Point{X: 355, Y: 175}
-	griffDance.CursorComponent.ACallback = func() {
-		fmt.Println("throw the stick")
-	}
-	griffDance.Hidden = true
-	w.AddEntity(&griffDance)
-	griffDance.Disable()
-	//            stick />
-	//            < salt
-	griffItem3 := selection{BasicEntity: ecs.NewBasic()}
-	griffItem3.Drawable = common.Text{
-		Font: griffFont,
-		Text: "Salt",
-	}
-	griffItem3.SetZIndex(6)
-	griffItem3.Scale = engo.Point{X: 0.4, Y: 0.4}
-	griffItem3.Position = engo.Point{X: 55, Y: 235}
-	griffItem3.CursorComponent.ACallback = func() {
-		fmt.Println("salt")
-	}
-	griffItem3.Hidden = true
-	w.AddEntity(&griffItem3)
-	griffItem3.Disable()
-	//            salt />
-	//            < saltwater toffee
-	griffItem4 := selection{BasicEntity: ecs.NewBasic()}
-	griffItem4.Drawable = common.Text{
-		Font: griffFont,
-		Text: "Saltwater toffee",
-	}
-	griffItem4.SetZIndex(6)
-	griffItem4.Scale = engo.Point{X: 0.4, Y: 0.4}
-	griffItem4.Position = engo.Point{X: 355, Y: 235}
-	griffItem4.CursorComponent.ACallback = func() {
-		fmt.Println("Sweeter than salty?")
-	}
-	griffItem4.Hidden = true
-	w.AddEntity(&griffItem4)
-	griffItem4.Disable()
+
 	//        Menu Act />
 	//        <ACTION A
 	griffA := playerSelectableSprite{BasicEntity: ecs.NewBasic()}

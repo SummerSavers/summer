@@ -14,9 +14,10 @@ func (cursorChangeMessage) Type() string {
 	return "Cursor Change Message"
 }
 
-type cursorEntity struct {
+type CursorEntity struct {
 	*ecs.BasicEntity
 	*common.SpaceComponent
+	*common.RenderComponent
 	*CursorComponent
 }
 
@@ -27,8 +28,10 @@ type pointer struct {
 }
 
 type CursorComponent struct {
-	ACallback, BCallback, XCallback, YCallback func()
-	enabled                                    bool
+	ACallback, BCallback, XCallback, YCallback func(s *CursorSystem)
+	// this is for lookups within the functions
+	Classes []string
+	enabled bool
 }
 
 func (c *CursorComponent) Enable() {
@@ -51,7 +54,7 @@ func (n *NotCursorComponent) GetNotCursorComponent() *NotCursorComponent {
 }
 
 type CursorSystem struct {
-	entities []cursorEntity
+	entities []CursorEntity
 	ptr      pointer
 	indexAt  int
 }
@@ -92,21 +95,21 @@ func (s *CursorSystem) New(w *ecs.World) {
 	})
 }
 
-func (s *CursorSystem) Add(basic *ecs.BasicEntity, space *common.SpaceComponent, selection *CursorComponent) {
+func (s *CursorSystem) Add(basic *ecs.BasicEntity, space *common.SpaceComponent, render *common.RenderComponent, selection *CursorComponent) {
 	if selection.ACallback == nil {
-		selection.ACallback = func() {}
+		selection.ACallback = func(*CursorSystem) {}
 	}
 	if selection.BCallback == nil {
-		selection.BCallback = func() {}
+		selection.BCallback = func(*CursorSystem) {}
 	}
 	if selection.XCallback == nil {
-		selection.XCallback = func() {}
+		selection.XCallback = func(*CursorSystem) {}
 	}
 	if selection.YCallback == nil {
-		selection.YCallback = func() {}
+		selection.YCallback = func(*CursorSystem) {}
 	}
 	selection.enabled = true
-	s.entities = append(s.entities, cursorEntity{basic, space, selection})
+	s.entities = append(s.entities, CursorEntity{basic, space, render, selection})
 	if len(s.entities) == 1 {
 		s.SetPointer(0)
 	}
@@ -114,7 +117,7 @@ func (s *CursorSystem) Add(basic *ecs.BasicEntity, space *common.SpaceComponent,
 
 func (s *CursorSystem) AddByInterface(id ecs.Identifier) {
 	o := id.(CursorAble)
-	s.Add(o.GetBasicEntity(), o.GetSpaceComponent(), o.GetCursorComponent())
+	s.Add(o.GetBasicEntity(), o.GetSpaceComponent(), o.GetRenderComponent(), o.GetCursorComponent())
 }
 
 func (s *CursorSystem) Remove(basic ecs.BasicEntity) {
@@ -158,13 +161,13 @@ func (s *CursorSystem) Update(dt float32) {
 	}
 	s.SetPointer(s.indexAt)
 	if engo.Input.Button("A").JustPressed() {
-		s.entities[s.indexAt].ACallback()
+		s.entities[s.indexAt].ACallback(s)
 	} else if engo.Input.Button("B").JustPressed() {
-		s.entities[s.indexAt].BCallback()
+		s.entities[s.indexAt].BCallback(s)
 	} else if engo.Input.Button("X").JustPressed() {
-		s.entities[s.indexAt].XCallback()
+		s.entities[s.indexAt].XCallback(s)
 	} else if engo.Input.Button("Y").JustPressed() {
-		s.entities[s.indexAt].YCallback()
+		s.entities[s.indexAt].YCallback(s)
 	}
 }
 
@@ -186,6 +189,7 @@ type CursorFace interface {
 type CursorAble interface {
 	common.BasicFace
 	common.SpaceFace
+	common.RenderFace
 	CursorFace
 }
 

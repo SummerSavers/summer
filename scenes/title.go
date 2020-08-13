@@ -111,7 +111,7 @@ func (*TitleScene) Setup(u engo.Updater) {
 	}
 	startText.SetZIndex(1)
 	startText.SetCenter(engo.Point{X: 306, Y: 150})
-	startText.CursorComponent.ACallback = func() {
+	startText.CursorComponent.ACallback = func(s *systems.CursorSystem) {
 		engo.SetSceneByName("intro battle", true)
 	}
 	w.AddEntity(&startText)

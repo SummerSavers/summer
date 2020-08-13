@@ -96,7 +96,7 @@ func (s *CombatLogSystem) Remove(basic ecs.BasicEntity) {
 func (s *CombatLogSystem) Update(dt float32) {
 	s.elapsed += dt
 	if s.done {
-		if s.idx < len(s.log) {
+		if s.idx < len(s.log)-1 {
 			s.idx++
 			s.moved = false
 			s.done = false
@@ -109,11 +109,14 @@ func (s *CombatLogSystem) Update(dt float32) {
 			txt := s.entities[0].Drawable.(common.Text)
 			txt.Font = s.log[s.idx].Fnt
 			txt.Text = ""
+			if !s.log[s.idx].Clip.IsPlaying() {
+				s.log[s.idx].Clip.Rewind()
+				s.log[s.idx].Clip.Play()
+			}
 			s.entities[0].Drawable = txt
 			s.moved = true
 		}
-		if len(s.log) > 0 && s.elapsed > 2 {
-			s.log[s.idx].Clip.Play()
+		if len(s.log) > 0 && s.elapsed > 0.1 {
 			s.charAt++
 			txt := s.entities[0].Drawable.(common.Text)
 			txt.Text = s.log[s.idx].Msg[:s.charAt]
