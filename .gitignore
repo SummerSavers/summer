@@ -1,6 +1,2 @@
 # build artifacts
 *.wasm
-
-# sounds
-assets/sounds/*
-assets/bindata.go
