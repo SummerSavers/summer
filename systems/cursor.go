@@ -14,6 +14,14 @@ func (cursorChangeMessage) Type() string {
 	return "Cursor Change Message"
 }
 
+type CursorSetMessage struct {
+	Index int
+}
+
+func (CursorSetMessage) Type() string {
+	return "Cursor Set Message"
+}
+
 type CursorEntity struct {
 	*ecs.BasicEntity
 	*common.SpaceComponent
@@ -28,19 +36,7 @@ type pointer struct {
 }
 
 type CursorComponent struct {
-	ACallback, BCallback, XCallback, YCallback func(s *CursorSystem)
-	// this is for lookups within the functions
-	Classes []string
-	enabled bool
-}
-
-func (c *CursorComponent) Enable() {
-	c.enabled = true
-}
-
-func (c *CursorComponent) Disable() {
-	c.enabled = false
-	engo.Mailbox.Dispatch(cursorChangeMessage{})
+	Selected bool
 }
 
 func (c *CursorComponent) GetCursorComponent() *CursorComponent {
@@ -56,7 +52,6 @@ func (n *NotCursorComponent) GetNotCursorComponent() *NotCursorComponent {
 type CursorSystem struct {
 	entities []CursorEntity
 	ptr      pointer
-	indexAt  int
 }
 
 func (s *CursorSystem) New(w *ecs.World) {
@@ -71,52 +66,27 @@ func (s *CursorSystem) New(w *ecs.World) {
 	s.ptr.Height = s.ptr.Drawable.Height()
 	s.ptr.SetZIndex(100)
 	w.AddEntity(&s.ptr)
-	engo.Mailbox.Listen("Cursor Change Message", func(m engo.Message) {
-		_, ok := m.(cursorChangeMessage)
+	engo.Mailbox.Listen("Cursor Set Message", func(msg engo.Message) {
+		m, ok := msg.(CursorSetMessage)
 		if !ok {
 			return
 		}
-		if !s.entities[s.indexAt].enabled {
-			var found bool
-			for i := 0; i < len(s.entities); i++ {
-				s.indexAt++
-				if s.indexAt >= len(s.entities) {
-					s.indexAt = 0
-				}
-				if s.entities[s.indexAt].enabled {
-					found = true
-					break
-				}
-			}
-			if !found {
-				s.ptr.Hidden = true
-			}
-		}
+		s.setPointer(m.Index)
 	})
 }
 
 func (s *CursorSystem) Add(basic *ecs.BasicEntity, space *common.SpaceComponent, render *common.RenderComponent, selection *CursorComponent) {
-	if selection.ACallback == nil {
-		selection.ACallback = func(*CursorSystem) {}
-	}
-	if selection.BCallback == nil {
-		selection.BCallback = func(*CursorSystem) {}
-	}
-	if selection.XCallback == nil {
-		selection.XCallback = func(*CursorSystem) {}
-	}
-	if selection.YCallback == nil {
-		selection.YCallback = func(*CursorSystem) {}
-	}
-	selection.enabled = true
 	s.entities = append(s.entities, CursorEntity{basic, space, render, selection})
-	if len(s.entities) == 1 {
-		s.SetPointer(0)
+	if selection.Selected {
+		s.setPointer(len(s.entities) - 1)
 	}
 }
 
 func (s *CursorSystem) AddByInterface(id ecs.Identifier) {
-	o := id.(CursorAble)
+	o, ok := id.(CursorAble)
+	if !ok {
+		return
+	}
 	s.Add(o.GetBasicEntity(), o.GetSpaceComponent(), o.GetRenderComponent(), o.GetCursorComponent())
 }
 
@@ -131,48 +101,40 @@ func (s *CursorSystem) Remove(basic ecs.BasicEntity) {
 	if delete >= 0 {
 		s.entities = append(s.entities[:delete], s.entities[delete+1:]...)
 	}
-	if s.indexAt >= len(s.entities) {
-		s.indexAt = len(s.entities) - 1
-		s.SetPointer(s.indexAt)
-	}
 }
 
 func (s *CursorSystem) Update(dt float32) {
-	var found bool
 	for i := 0; i < len(s.entities); i++ {
-		if engo.Input.Button("up").JustPressed() || engo.Input.Button("right").JustPressed() {
-			s.indexAt++
-			if s.indexAt >= len(s.entities) {
-				s.indexAt = 0
-			}
-		} else if engo.Input.Button("down").JustPressed() || engo.Input.Button("left").JustPressed() {
-			s.indexAt--
-			if s.indexAt < 0 {
-				s.indexAt = len(s.entities) - 1
+		if s.entities[i].Selected == true {
+			if engo.Input.Button("down").JustPressed() || engo.Input.Button("left").JustPressed() {
+				s.entities[i].Selected = false
+				if i+1 >= len(s.entities) && len(s.entities) > 0 {
+					s.entities[i].Selected = true
+					s.setPointer(i)
+					return
+				} else {
+					s.entities[i+1].Selected = true
+					s.setPointer(i + 1)
+					return
+				}
+			} else if engo.Input.Button("up").JustPressed() || engo.Input.Button("right").JustPressed() {
+				s.entities[i].Selected = false
+				if i-1 < 0 && len(s.entities) > 0 {
+					s.entities[i].Selected = true
+					s.setPointer(i)
+					return
+				} else {
+					s.entities[i-1].Selected = true
+					s.setPointer(i - 1)
+					return
+				}
 			}
 		}
-		if s.entities[s.indexAt].enabled {
-			found = true
-			break
-		}
-	}
-	if !found {
-		return
-	}
-	s.SetPointer(s.indexAt)
-	if engo.Input.Button("A").JustPressed() {
-		s.entities[s.indexAt].ACallback(s)
-	} else if engo.Input.Button("B").JustPressed() {
-		s.entities[s.indexAt].BCallback(s)
-	} else if engo.Input.Button("X").JustPressed() {
-		s.entities[s.indexAt].XCallback(s)
-	} else if engo.Input.Button("Y").JustPressed() {
-		s.entities[s.indexAt].YCallback(s)
 	}
 }
 
-func (s *CursorSystem) SetPointer(i int) {
-	if len(s.entities) == 0 || i > len(s.entities)-1 {
+func (s *CursorSystem) setPointer(i int) {
+	if len(s.entities) == 0 || i > len(s.entities)-1 || i < 0 {
 		s.ptr.Hidden = true
 		return
 	}

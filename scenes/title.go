@@ -60,6 +60,10 @@ func (*TitleScene) Setup(u engo.Updater) {
 	var curSys systems.CursorSystem
 	w.AddSystemInterface(&curSys, cursorable, notcursorable)
 
+	var sceneswitchable *systems.SceneSwitchAble
+	var notsceneswitchable *systems.NotSceneSwitchAble
+	w.AddSystemInterface(&systems.SceneSwitchSystem{}, sceneswitchable, notsceneswitchable)
+
 	common.SetBackground(color.RGBA{R: 0xd8, G: 0xee, B: 0xff, A: 0xff})
 
 	bgm := audio{BasicEntity: ecs.NewBasic()}
@@ -104,17 +108,35 @@ func (*TitleScene) Setup(u engo.Updater) {
 	}
 	selFont.CreatePreloaded()
 
-	startText := selection{BasicEntity: ecs.NewBasic()}
+	startText := selectionsceneswitch{BasicEntity: ecs.NewBasic()}
 	startText.Drawable = common.Text{
 		Text: "start",
 		Font: selFont,
 	}
 	startText.SetZIndex(1)
 	startText.SetCenter(engo.Point{X: 306, Y: 150})
-	startText.CursorComponent.ACallback = func(s *systems.CursorSystem) {
-		engo.SetSceneByName("intro battle", true)
-	}
+	startText.Selected = true
+	startText.To = "intro battle"
+	startText.NewWorld = true
 	w.AddEntity(&startText)
+
+	optionsText := selection{BasicEntity: ecs.NewBasic()}
+	optionsText.Drawable = common.Text{
+		Text: "options",
+		Font: selFont,
+	}
+	optionsText.SetZIndex(1)
+	optionsText.SetCenter(engo.Point{X: 306, Y: 175})
+	w.AddEntity(&optionsText)
+
+	creditsText := selection{BasicEntity: ecs.NewBasic()}
+	creditsText.Drawable = common.Text{
+		Text: "credits",
+		Font: selFont,
+	}
+	creditsText.SetZIndex(1)
+	creditsText.SetCenter(engo.Point{X: 306, Y: 200})
+	w.AddEntity(&creditsText)
 
 	fsText := sprite{BasicEntity: ecs.NewBasic()}
 	fsText.Drawable = common.Text{
@@ -122,7 +144,7 @@ func (*TitleScene) Setup(u engo.Updater) {
 		Font: selFont,
 	}
 	fsText.SetZIndex(1)
-	fsText.SetCenter(engo.Point{X: 250, Y: 180})
+	fsText.SetCenter(engo.Point{X: 265, Y: 225})
 	fsText.Scale = engo.Point{X: 0.5, Y: 0.5}
 	w.AddEntity(&fsText)
 }

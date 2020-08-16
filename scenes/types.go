@@ -43,5 +43,17 @@ type playerSelectableSprite struct {
 	ecs.BasicEntity
 	common.SpaceComponent
 	common.RenderComponent
-	systems.PlayerSelectComponent
+}
+
+type selectionsceneswitch struct {
+	ecs.BasicEntity
+	common.SpaceComponent
+	common.RenderComponent
+	systems.CursorComponent
+	systems.SceneSwitchComponent
+}
+
+type character struct {
+	ecs.BasicEntity
+	systems.CharacterComponent
 }
