@@ -63,6 +63,11 @@ type BattleboxSystem struct {
 	idx                        int
 	paused                     bool
 	battleboxMenuSelected      BattleBoxMenu
+	skipNextFrame              bool
+}
+
+func (s *BattleboxSystem) Priority() int {
+	return 2
 }
 
 func (s *BattleboxSystem) New(w *ecs.World) {
@@ -79,6 +84,7 @@ func (s *BattleboxSystem) New(w *ecs.World) {
 			s.cur = sys
 		}
 	}
+	s.paused = true
 
 	img := image.NewNRGBA(image.Rect(0, 0, 1, 1))
 	img.Set(0, 0, color.RGBA{0xff, 0x00, 0x00, 0xff})
@@ -100,10 +106,11 @@ func (s *BattleboxSystem) New(w *ecs.World) {
 		Text: "---",
 	}
 	s.item1.SetZIndex(6)
-	s.item1.Scale = engo.Point{X: 0.4, Y: 0.4}
-	s.item1.Position = engo.Point{X: 55, Y: 175}
+	s.item1.Scale = engo.Point{X: 0.3, Y: 0.3}
+	s.item1.Position = engo.Point{X: 52, Y: 165}
 	s.item1.Hidden = true
 	w.AddEntity(&s.item1)
+	s.cur.Remove(s.item1.BasicEntity)
 	//Item2
 	s.item2 = selection{BasicEntity: ecs.NewBasic()}
 	s.item2.Drawable = common.Text{
@@ -111,10 +118,11 @@ func (s *BattleboxSystem) New(w *ecs.World) {
 		Text: "---",
 	}
 	s.item2.SetZIndex(6)
-	s.item2.Scale = engo.Point{X: 0.4, Y: 0.4}
-	s.item2.Position = engo.Point{X: 355, Y: 175}
+	s.item2.Scale = engo.Point{X: 0.3, Y: 0.3}
+	s.item2.Position = engo.Point{X: 52, Y: 195}
 	s.item2.Hidden = true
 	w.AddEntity(&s.item2)
+	s.cur.Remove(s.item2.BasicEntity)
 	//Item3
 	s.item3 = selection{BasicEntity: ecs.NewBasic()}
 	s.item3.Drawable = common.Text{
@@ -122,10 +130,11 @@ func (s *BattleboxSystem) New(w *ecs.World) {
 		Text: "---",
 	}
 	s.item3.SetZIndex(6)
-	s.item3.Scale = engo.Point{X: 0.4, Y: 0.4}
-	s.item3.Position = engo.Point{X: 55, Y: 235}
+	s.item3.Scale = engo.Point{X: 0.3, Y: 0.3}
+	s.item3.Position = engo.Point{X: 52, Y: 225}
 	s.item3.Hidden = true
 	w.AddEntity(&s.item3)
+	s.cur.Remove(s.item3.BasicEntity)
 	//Item4
 	s.item4 = selection{BasicEntity: ecs.NewBasic()}
 	s.item4.Drawable = common.Text{
@@ -133,10 +142,11 @@ func (s *BattleboxSystem) New(w *ecs.World) {
 		Text: "---",
 	}
 	s.item4.SetZIndex(6)
-	s.item4.Scale = engo.Point{X: 0.4, Y: 0.4}
-	s.item4.Position = engo.Point{X: 355, Y: 235}
+	s.item4.Scale = engo.Point{X: 0.3, Y: 0.3}
+	s.item4.Position = engo.Point{X: 52, Y: 255}
 	s.item4.Hidden = true
 	w.AddEntity(&s.item4)
+	s.cur.Remove(s.item4.BasicEntity)
 	//DescLine1
 	s.desc = sprite{BasicEntity: ecs.NewBasic()}
 	s.desc.Drawable = common.Text{
@@ -145,10 +155,9 @@ func (s *BattleboxSystem) New(w *ecs.World) {
 	}
 	s.desc.SetZIndex(6)
 	s.desc.Scale = engo.Point{X: 0.4, Y: 0.4}
-	s.desc.Position = engo.Point{X: 355, Y: 235}
+	s.desc.Position = engo.Point{X: 215, Y: 165}
 	s.desc.Hidden = true
 	w.AddEntity(&s.desc)
-	s.paused = true
 	engo.Mailbox.Listen("battleboxhidemessage", func(msg engo.Message) {
 		_, ok := msg.(BattleBoxHideMessage)
 		if !ok {
@@ -171,6 +180,7 @@ func (s *BattleboxSystem) New(w *ecs.World) {
 		engo.Mailbox.Dispatch(CursorSetMessage{-1})
 		s.idx = 0
 		s.paused = true
+		s.skipNextFrame = true
 	})
 	engo.Mailbox.Listen("battleboxshowmessage", func(msg engo.Message) {
 		m, ok := msg.(BattleBoxShowMessage)
@@ -184,10 +194,10 @@ func (s *BattleboxSystem) New(w *ecs.World) {
 		s.item3.Hidden = false
 		s.item4.Hidden = false
 		s.item1.Selected = true
-		s.cur.AddByInterface(s.item1)
-		s.cur.AddByInterface(s.item2)
-		s.cur.AddByInterface(s.item3)
-		s.cur.AddByInterface(s.item4)
+		s.cur.AddByInterface(&s.item1)
+		s.cur.AddByInterface(&s.item2)
+		s.cur.AddByInterface(&s.item3)
+		s.cur.AddByInterface(&s.item4)
 		s.idx = 0
 		for i := 0; i < len(s.entities); i++ {
 			if s.entities[i].CardSelected {
@@ -297,7 +307,7 @@ func (s *BattleboxSystem) New(w *ecs.World) {
 						Text: desc,
 					}
 				case BattleBoxMenuActs:
-					s.battleboxMenuSelected = BattleBoxMenuItems
+					s.battleboxMenuSelected = BattleBoxMenuActs
 					if len(s.entities[i].Acts) > 0 {
 						s.item1.Drawable = common.Text{
 							Font: s.entities[i].Font,
@@ -351,6 +361,7 @@ func (s *BattleboxSystem) New(w *ecs.World) {
 			}
 		}
 		s.paused = false
+		s.skipNextFrame = true
 	})
 }
 
@@ -380,6 +391,10 @@ func (s *BattleboxSystem) Remove(basic ecs.BasicEntity) {
 }
 
 func (s *BattleboxSystem) Update(dt float32) {
+	if s.skipNextFrame {
+		s.skipNextFrame = false
+		return
+	}
 	if s.paused {
 		return
 	}
@@ -395,7 +410,7 @@ func (s *BattleboxSystem) Update(dt float32) {
 		return
 	}
 
-	if engo.Input.Button("down").JustPressed() || engo.Input.Button("left").JustPressed() {
+	if engo.Input.Button("down").JustPressed() || engo.Input.Button("right").JustPressed() {
 		s.idx++
 		l := 0
 		switch s.battleboxMenuSelected {
@@ -409,7 +424,7 @@ func (s *BattleboxSystem) Update(dt float32) {
 		if s.idx > l-1 {
 			s.idx = l - 1
 		}
-	} else if engo.Input.Button("up").JustPressed() || engo.Input.Button("right").JustPressed() {
+	} else if engo.Input.Button("up").JustPressed() || engo.Input.Button("left").JustPressed() {
 		s.idx--
 		if s.idx < 0 {
 			s.idx = 0
@@ -480,5 +495,7 @@ func (s *BattleboxSystem) Update(dt float32) {
 
 	if engo.Input.Button("B").JustPressed() {
 		//message to go back (close this and reactivate player select)
+		engo.Mailbox.Dispatch(BattleBoxHideMessage{})
+		engo.Mailbox.Dispatch(PlayerSelectUnpauseMessage{})
 	}
 }

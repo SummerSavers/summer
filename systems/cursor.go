@@ -106,7 +106,7 @@ func (s *CursorSystem) Remove(basic ecs.BasicEntity) {
 func (s *CursorSystem) Update(dt float32) {
 	for i := 0; i < len(s.entities); i++ {
 		if s.entities[i].Selected == true {
-			if engo.Input.Button("down").JustPressed() || engo.Input.Button("left").JustPressed() {
+			if engo.Input.Button("down").JustPressed() || engo.Input.Button("right").JustPressed() {
 				s.entities[i].Selected = false
 				if i+1 >= len(s.entities) && len(s.entities) > 0 {
 					s.entities[i].Selected = true
@@ -117,7 +117,7 @@ func (s *CursorSystem) Update(dt float32) {
 					s.setPointer(i + 1)
 					return
 				}
-			} else if engo.Input.Button("up").JustPressed() || engo.Input.Button("right").JustPressed() {
+			} else if engo.Input.Button("up").JustPressed() || engo.Input.Button("left").JustPressed() {
 				s.entities[i].Selected = false
 				if i-1 < 0 && len(s.entities) > 0 {
 					s.entities[i].Selected = true

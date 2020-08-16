@@ -7,8 +7,13 @@
 Hello! This is the source code for the game "Let's Save Summer"!
 
 The game is written in the go programming language, using the game engine [engo](https://www.github.com/EngoEngine/engo)!
-All the source is available under the MIT License, and all the stuff under the
+All the source is available under the MIT License, and all the images under the
 assets folder is under Creative Commons Attribution - By Line - Share Alike International license.
+
+The fonts are all OFL fonts, and a copy is included in the assets folder.
+
+The sound files are all Creative Commons works, either
+CC-0, or a CC that allows commercial use. The attributions are all in the resource folder.
 
 This is where the work is mostly done! If you'd like to help out, comment on an issue you see interesting or otherwise
 get in touch, and I'll see where we can go together! I've also got a [patreon](https://www.patreon.com/noofbiz) and a

@@ -265,7 +265,7 @@ func (*IntroScene) Setup(u engo.Updater) {
 			Desc: "...",
 		},
 		systems.BattleBoxText{
-			Name: "Item C",
+			Name: "Item D",
 			Desc: "...",
 		},
 		systems.BattleBoxText{

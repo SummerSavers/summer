@@ -21,6 +21,12 @@ type NotPlayerSelectAble interface {
 	GetNotPlayerSelectComponent() *NotPlayerSelectComponent
 }
 
+type PlayerSelectUnpauseMessage struct{}
+
+func (PlayerSelectUnpauseMessage) Type() string {
+	return "playerselectunpausemessage"
+}
+
 type playerSelectEntity struct {
 	*ecs.BasicEntity
 	*CharacterComponent
@@ -34,12 +40,22 @@ type PlayerSelectSystem struct {
 	w             *ecs.World
 	idx, cur      int
 	paused        bool
+	skipNextFrame bool
+}
+
+func (s *PlayerSelectSystem) Priority() int {
+	return 0
 }
 
 func (s *PlayerSelectSystem) New(w *ecs.World) {
 	s.sprites = make(map[uint64][]sprite)
 	s.w = w
 	s.setupPositions()
+
+	engo.Mailbox.Listen("playerselectunpausemessage", func(msg engo.Message) {
+		s.paused = false
+		s.skipNextFrame = true
+	})
 }
 
 func (s *PlayerSelectSystem) setupPositions() {
@@ -162,6 +178,10 @@ func (s *PlayerSelectSystem) Remove(basic ecs.BasicEntity) {
 }
 
 func (s *PlayerSelectSystem) Update(dt float32) {
+	if s.skipNextFrame {
+		s.skipNextFrame = false
+		return
+	}
 	if s.paused {
 		return
 	}
@@ -199,11 +219,17 @@ func (s *PlayerSelectSystem) Update(dt float32) {
 	}
 	if engo.Input.Button("B").JustPressed() {
 		engo.Mailbox.Dispatch(BattleBoxShowMessage{MenuToShow: BattleBoxMenuAbilities})
+		s.skipNextFrame = true
+		s.paused = true
 	}
 	if engo.Input.Button("X").JustPressed() {
 		engo.Mailbox.Dispatch(BattleBoxShowMessage{MenuToShow: BattleBoxMenuItems})
+		s.skipNextFrame = true
+		s.paused = true
 	}
 	if engo.Input.Button("Y").JustPressed() {
 		engo.Mailbox.Dispatch(BattleBoxShowMessage{MenuToShow: BattleBoxMenuActs})
+		s.skipNextFrame = true
+		s.paused = true
 	}
 }
