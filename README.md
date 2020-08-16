@@ -27,14 +27,8 @@ just have fun!
 
 branches in the project are like this:
 
-bug-free is the production branch. should be the latest
-day.
-
-buggy is the pre-production branch. has latest updates
- but should regularly still build.
-
-disaster is my working branch. Probably doesn't build.
-That's okay since it will build before it's squashed into buggy!
+disaster is the production branch. should be the latest
+day. Yay!
 
 <p xmlns:dct="http://purl.org/dc/terms/" xmlns:cc="http://creativecommons.org/ns#" class="license-text">The images in the assets folder are licensed under <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1" /><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1" /><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1" /></a></p>
 
