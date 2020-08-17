@@ -25,13 +25,6 @@ type audio struct {
 	common.AudioComponent
 }
 
-type logText struct {
-	ecs.BasicEntity
-	common.SpaceComponent
-	common.RenderComponent
-	systems.CombatLogComponent
-}
-
 type baddieSprite struct {
 	ecs.BasicEntity
 	common.SpaceComponent

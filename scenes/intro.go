@@ -54,10 +54,11 @@ var files = []string{
 	"combat/BattleBoxes.png",
 	"sounds/bloodmouthghost/log.wav",
 	"sounds/griff/log.wav",
-	//"sounds/cent/log.wav",
+	"sounds/cent/log.wav",
 	"sounds/kai/log.wav",
 	"sounds/levi/log.wav",
-	//"sounds/wy/log.wav",
+	"sounds/wy/log.wav",
+	"sounds/bloodmouthghost/bg.wav",
 }
 
 func (*IntroScene) Preload() {
@@ -88,9 +89,11 @@ func (*IntroScene) Setup(u engo.Updater) {
 	var notaudioable *common.NotAudioable
 	w.AddSystemInterface(&common.AudioSystem{}, audioable, notaudioable)
 
-	var logable *systems.CombatLogAble
-	var notlogable *systems.NotCombatLogAble
-	w.AddSystemInterface(&systems.CombatLogSystem{}, logable, notlogable)
+	w.AddSystem(&systems.CombatLogSystem{
+		BackgroundURL: files[2],
+		DotURL:        files[1],
+		FontURL:       files[0],
+	})
 
 	var baddiephaseable *systems.BaddiePhaseAble
 	var notbaddiephaseable *systems.NotBaddiePhaseAble
@@ -116,95 +119,21 @@ func (*IntroScene) Setup(u engo.Updater) {
 	bg.Drawable = shaders.ShaderDrawable{}
 	bg.SetShader(shaders.CoolShader)
 	w.AddEntity(&bg)
-	// bgm := audio{BasicEntity: ecs.NewBasic()}
-	// bgmPlayer, _ := common.LoadedPlayer("titlebgm.wav")
-	// bgm.AudioComponent = common.AudioComponent{Player: bgmPlayer}
-	// bgmPlayer.Repeat = true
-	// bgmPlayer.Play()
-	// w.AddEntity(&bgm)
+	bgm := audio{BasicEntity: ecs.NewBasic()}
+	bgmPlayer, _ := common.LoadedPlayer(files[41])
+	bgm.AudioComponent = common.AudioComponent{Player: bgmPlayer}
+	bgmPlayer.Repeat = true
+	bgmPlayer.Play()
+	w.AddEntity(&bgm)
 	// BACKGROUNDS />
 
-	// < COMBAT lOG
-	//   < Background
-	logbg := sprite{BasicEntity: ecs.NewBasic()}
-	logbg.Drawable, _ = common.LoadedSprite(files[2])
-	logbg.SetZIndex(1)
-	logbg.Width = logbg.Drawable.Width()
-	logbg.Height = logbg.Drawable.Height()
-	logbg.SetCenter(engo.Point{X: 320, Y: logbg.Height / 2})
-	w.AddEntity(&logbg)
-	//    Background />
-	//    <Load font
-	logFont := &common.Font{
+	// < BloodmouthGhost
+	bmgFont := &common.Font{
 		Size: 64,
 		FG:   color.Black,
 		URL:  files[0],
 	}
-	logFont.CreatePreloaded()
-	//    Load font />
-	//    <Load dot
-	dotTex, err := common.LoadedSprite(files[1])
-	if err != nil {
-		panic(err.Error())
-	}
-	//    Load dot />
-	//    <Dot 1
-	dot1 := sprite{BasicEntity: ecs.NewBasic()}
-	dot1.Drawable = dotTex
-	dot1.SetZIndex(2)
-	dot1.SetCenter(engo.Point{X: 84, Y: 15})
-	w.AddEntity(&dot1)
-	//    Dot 1 />
-	//    <Text 1
-	text1 := logText{BasicEntity: ecs.NewBasic()}
-	text1.Drawable = common.Text{
-		Font: logFont,
-		Text: "A Blood-Mouthed Ghost Appearerated!",
-	}
-	text1.Scale = engo.Point{X: 0.2, Y: 0.2}
-	text1.SetZIndex(2)
-	text1.Position = engo.Point{X: 99, Y: 10}
-	w.AddEntity(&text1)
-	//    Text 1 />
-	//    <Dot 2
-	dot2 := sprite{BasicEntity: ecs.NewBasic()}
-	dot2.Drawable = dotTex
-	dot2.SetZIndex(2)
-	dot2.SetCenter(engo.Point{X: 84, Y: 35})
-	w.AddEntity(&dot2)
-	//    Dot 2 />
-	//    <Text 2
-	text2 := logText{BasicEntity: ecs.NewBasic()}
-	text2.Drawable = common.Text{
-		Font: logFont,
-		Text: "",
-	}
-	text2.Scale = engo.Point{X: 0.2, Y: 0.2}
-	text2.SetZIndex(2)
-	text2.Position = engo.Point{X: 99, Y: 30}
-	w.AddEntity(&text2)
-	//    Text 2 />
-	//    <Dot 3
-	dot3 := sprite{BasicEntity: ecs.NewBasic()}
-	dot3.Drawable = dotTex
-	dot3.SetZIndex(2)
-	dot3.SetCenter(engo.Point{X: 84, Y: 55})
-	w.AddEntity(&dot3)
-	//    Dot 3 />
-	//    <Text 3
-	text3 := logText{BasicEntity: ecs.NewBasic()}
-	text3.Drawable = common.Text{
-		Font: logFont,
-		Text: "",
-	}
-	text3.Scale = engo.Point{X: 0.2, Y: 0.2}
-	text3.SetZIndex(2)
-	text3.Position = engo.Point{X: 99, Y: 50}
-	w.AddEntity(&text3)
-	//    Text 3 />
-	// COMBAT LOG />
-
-	// < BloodmouthGhost
+	bmgFont.CreatePreloaded()
 	//    < sprite sheet
 	bmgSpritesheet := common.NewSpritesheetWithBorderFromFile(files[3], 64, 64, 1, 1)
 	//    sprite sheet />
@@ -323,6 +252,15 @@ func (*IntroScene) Setup(u engo.Updater) {
 	griff.CardSelected = true
 	w.AddEntity(&griff)
 	// Griff />
+
+	// < Send a BMG Message
+	engo.Mailbox.Dispatch(systems.CombatLogMessage{
+		Msg:  "A blood-mouthed ghost has appearerated!",
+		Fnt:  bmgFont,
+		Clip: bmgLogClip.Player,
+	})
+	// Send a BMG Message />
+
 	// // Kids />
 	// // < GRIFF
 	// //    <Load font
