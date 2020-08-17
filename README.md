@@ -10,6 +10,8 @@ The game is written in the go programming language, using the game engine [engo]
 All the source is available under the MIT License, and all the images under the
 assets folder is under Creative Commons Attribution - By Line - Share Alike International license.
 
+The fonts are all under the OFL and it is included beside the font files in the assets folder.
+
 The sound files are all Creative Commons works, either
 CC-0, or a CC that allows commercial use. The attributions are all in the resource folder.
 
@@ -30,7 +32,7 @@ day. Yay!
 
 # Assets Folder Available by request
 
-the assets are too large to host in a git repo, so I'll give them out when
+The assets are too large to host in a git repo, so I'll give them out when
 requested.
 
 <p xmlns:dct="http://purl.org/dc/terms/" xmlns:cc="http://creativecommons.org/ns#" class="license-text">The images in the assets folder are licensed under <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1" /><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1" /><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1" /></a></p>
