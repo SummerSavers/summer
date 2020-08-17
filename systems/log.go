@@ -9,16 +9,6 @@ import (
 	"github.com/EngoEngine/engo/common"
 )
 
-type NotCombatLogComponent struct{}
-
-func (n *NotCombatLogComponent) GetNotCombatLogComponent() *NotCombatLogComponent {
-	return n
-}
-
-type NotCombatLogAble interface {
-	GetNotCombatLogComponent() *NotCombatLogComponent
-}
-
 type CombatLogMessage struct {
 	Msg  string
 	Fnt  *common.Font
@@ -55,18 +45,21 @@ func (s *CombatLogSystem) New(w *ecs.World) {
 	s.dot1.Drawable = dotTex
 	s.dot1.SetZIndex(2)
 	s.dot1.SetCenter(engo.Point{X: 84, Y: 15})
+	s.dot1.Hidden = true
 	w.AddEntity(&s.dot1)
 	//dot2
 	s.dot2 = sprite{BasicEntity: ecs.NewBasic()}
 	s.dot2.Drawable = dotTex
 	s.dot2.SetZIndex(2)
 	s.dot2.SetCenter(engo.Point{X: 84, Y: 35})
+	s.dot2.Hidden = true
 	w.AddEntity(&s.dot2)
 	//dot3
 	s.dot3 = sprite{BasicEntity: ecs.NewBasic()}
 	s.dot3.Drawable = dotTex
 	s.dot3.SetZIndex(2)
 	s.dot3.SetCenter(engo.Point{X: 84, Y: 55})
+	s.dot3.Hidden = true
 	w.AddEntity(&s.dot3)
 
 	logFont := &common.Font{
@@ -129,6 +122,7 @@ func (s *CombatLogSystem) Update(dt float32) {
 		}
 	} else {
 		if !s.moved && len(s.log) > 0 {
+			s.dot1.Hidden = false
 			s.line2.Drawable = s.line1.Drawable
 			s.line3.Drawable = s.line2.Drawable
 			txt := s.line1.Drawable.(common.Text)
@@ -140,15 +134,30 @@ func (s *CombatLogSystem) Update(dt float32) {
 			}
 			s.line1.Drawable = txt
 			s.moved = true
+			txt2 := s.line2.Drawable.(common.Text)
+			txt3 := s.line3.Drawable.(common.Text)
+			if txt2.Text != "" {
+				s.dot2.Hidden = false
+			}
+			if txt3.Text != "" {
+				s.dot3.Hidden = false
+			}
 		}
-		if len(s.log) > 0 && s.elapsed > 0.1 {
+		if len(s.log) > 0 && s.elapsed > 0.05 {
 			s.charAt++
 			txt := s.line1.Drawable.(common.Text)
 			txt.Text = s.log[s.idx].Msg[:s.charAt]
 			s.line1.Drawable = txt
 			s.elapsed = 0
 		}
-
+		if engo.Input.Button("A").JustPressed() {
+			txt := s.line1.Drawable.(common.Text)
+			txt.Text = s.log[s.idx].Msg
+			s.line1.Drawable = txt
+			s.charAt = 0
+			s.elapsed = 0
+			s.done = true
+		}
 		if len(s.log) > 0 && s.charAt >= len(s.log[s.idx].Msg) {
 			s.charAt = 0
 			s.elapsed = 0
