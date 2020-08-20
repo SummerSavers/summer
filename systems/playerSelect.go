@@ -36,7 +36,7 @@ type PlayerSelectSystem struct {
 	PlayerCount   int
 	cardpositions []engo.Point
 	entities      []playerSelectEntity
-	sprites       map[uint64][]sprite
+	sprites       map[uint64][]*sprite
 	w             *ecs.World
 	idx, cur      int
 	paused        bool
@@ -48,7 +48,7 @@ func (s *PlayerSelectSystem) Priority() int {
 }
 
 func (s *PlayerSelectSystem) New(w *ecs.World) {
-	s.sprites = make(map[uint64][]sprite)
+	s.sprites = make(map[uint64][]*sprite)
 	s.w = w
 	s.setupPositions()
 
@@ -64,45 +64,45 @@ func (s *PlayerSelectSystem) setupPositions() {
 		s.paused = true
 	case 1:
 		s.cardpositions = []engo.Point{
-			engo.Point{X: 269, Y: 191},
+			engo.Point{X: 279, Y: 191},
 		}
 	case 2:
 		s.cardpositions = []engo.Point{
-			engo.Point{X: 0, Y: 0},
-			engo.Point{X: 0, Y: 0},
+			engo.Point{X: 172, Y: 191},
+			engo.Point{X: 284, Y: 216},
 		}
 	case 3:
 		s.cardpositions = []engo.Point{
-			engo.Point{X: 0, Y: 0},
-			engo.Point{X: 0, Y: 0},
-			engo.Point{X: 0, Y: 0},
+			engo.Point{X: 157, Y: 191},
+			engo.Point{X: 269, Y: 216},
+			engo.Point{X: 381, Y: 216},
 		}
 	case 4:
 		s.cardpositions = []engo.Point{
-			engo.Point{X: 0, Y: 0},
-			engo.Point{X: 0, Y: 0},
-			engo.Point{X: 0, Y: 0},
-			engo.Point{X: 0, Y: 0},
+			engo.Point{X: 101, Y: 191},
+			engo.Point{X: 213, Y: 216},
+			engo.Point{X: 325, Y: 216},
+			engo.Point{X: 437, Y: 216},
 		}
 	case 5:
 		s.cardpositions = []engo.Point{
-			engo.Point{X: 0, Y: 0},
-			engo.Point{X: 0, Y: 0},
-			engo.Point{X: 0, Y: 0},
-			engo.Point{X: 0, Y: 0},
-			engo.Point{X: 0, Y: 0},
+			engo.Point{X: 45, Y: 191},
+			engo.Point{X: 157, Y: 216},
+			engo.Point{X: 269, Y: 216},
+			engo.Point{X: 381, Y: 216},
+			engo.Point{X: 493, Y: 216},
 		}
 	}
 }
 
 func (s *PlayerSelectSystem) Add(basic *ecs.BasicEntity, chara *CharacterComponent) {
-	sprs := make([]sprite, 0)
+	sprs := make([]*sprite, 0)
 	//create player card
 	card := sprite{BasicEntity: ecs.NewBasic()}
 	card.Drawable = chara.Card
 	card.SetZIndex(3)
 	card.Position = s.cardpositions[len(s.entities)]
-	sprs = append(sprs, card)
+	sprs = append(sprs, &card)
 	s.w.AddEntity(&card)
 	//create player  name
 	name := sprite{BasicEntity: ecs.NewBasic()}
@@ -115,7 +115,7 @@ func (s *PlayerSelectSystem) Add(basic *ecs.BasicEntity, chara *CharacterCompone
 	name.Position = s.cardpositions[len(s.entities)]
 	name.Position.X += 6
 	name.Position.Y += 7
-	sprs = append(sprs, name)
+	sprs = append(sprs, &name)
 	s.w.AddEntity(&name)
 	//create attack icon
 	attack := sprite{BasicEntity: ecs.NewBasic()}
@@ -124,7 +124,7 @@ func (s *PlayerSelectSystem) Add(basic *ecs.BasicEntity, chara *CharacterCompone
 	attack.Position = s.cardpositions[len(s.entities)]
 	attack.Position.X += 13
 	attack.Position.Y += 91
-	sprs = append(sprs, attack)
+	sprs = append(sprs, &attack)
 	s.w.AddEntity(&attack)
 	//create ability icon
 	ability := sprite{BasicEntity: ecs.NewBasic()}
@@ -133,7 +133,7 @@ func (s *PlayerSelectSystem) Add(basic *ecs.BasicEntity, chara *CharacterCompone
 	ability.Position = s.cardpositions[len(s.entities)]
 	ability.Position.X += 64
 	ability.Position.Y += 91
-	sprs = append(sprs, ability)
+	sprs = append(sprs, &ability)
 	s.w.AddEntity(&ability)
 	//create items icon
 	item := sprite{BasicEntity: ecs.NewBasic()}
@@ -142,7 +142,7 @@ func (s *PlayerSelectSystem) Add(basic *ecs.BasicEntity, chara *CharacterCompone
 	item.Position = s.cardpositions[len(s.entities)]
 	item.Position.X += 13
 	item.Position.Y += 115
-	sprs = append(sprs, item)
+	sprs = append(sprs, &item)
 	s.w.AddEntity(&item)
 	//create act icon
 	act := sprite{BasicEntity: ecs.NewBasic()}
@@ -151,7 +151,7 @@ func (s *PlayerSelectSystem) Add(basic *ecs.BasicEntity, chara *CharacterCompone
 	act.Position = s.cardpositions[len(s.entities)]
 	act.Position.X += 64
 	act.Position.Y += 115
-	sprs = append(sprs, act)
+	sprs = append(sprs, &act)
 	s.w.AddEntity(&act)
 
 	s.entities = append(s.entities, playerSelectEntity{basic, chara})
@@ -208,7 +208,7 @@ func (s *PlayerSelectSystem) Update(dt float32) {
 			spr.Position.Y += 25
 		}
 		s.entities[s.cur].CardSelected = false
-		for _, spr := range s.sprites[s.entities[s.cur].ID()] {
+		for _, spr := range s.sprites[s.entities[s.idx].ID()] {
 			spr.Position.Y -= 25
 		}
 		s.entities[s.idx].CardSelected = true
