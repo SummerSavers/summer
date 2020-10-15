@@ -30,7 +30,7 @@ type NotBattleboxAble interface {
 type BattleBoxMenu uint8
 
 const (
-	BattleBoxMenuAbilities = iota
+	BattleBoxMenuAbilities BattleBoxMenu = iota
 	BattleBoxMenuItems
 	BattleBoxMenuActs
 )

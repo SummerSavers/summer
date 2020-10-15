@@ -6,7 +6,28 @@ import (
 	"github.com/EngoEngine/engo/common"
 )
 
-type BaddieComponent struct{}
+type BaddieComponent struct {
+	Name         string
+	Phases       map[string]Phase
+	CurrentPhase string
+	Font         *common.Font
+	Clip         *common.Player
+	HP, MaxHP    int
+	CastAt       int
+	CastTime     int
+	Spritesheet  *common.Spritesheet
+}
+
+type Phase struct {
+	Animations []*common.Animation
+	Abilities  []BaddieAbility
+}
+
+type BaddieAbility struct {
+	Weight      int
+	LogMessages []string
+	Times       []float32
+}
 
 func (c *BaddieComponent) GetBaddieComponent() *BaddieComponent {
 	return c

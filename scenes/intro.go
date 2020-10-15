@@ -104,6 +104,7 @@ func (*IntroScene) Setup(u engo.Updater) {
 	w.AddSystemInterface(&systems.PlayerSelectSystem{PlayerCount: 5}, playerselectable, notplayerselectable)
 
 	w.AddSystem(&systems.ExitSystem{})
+	w.AddSystem(&systems.TargetSystem{})
 
 	var cursorable *systems.CursorAble
 	var notcursorable *systems.NotCursorAble
@@ -112,6 +113,11 @@ func (*IntroScene) Setup(u engo.Updater) {
 	var battleboxable *systems.BattleboxAble
 	var notbattleboxable *systems.NotBattleboxAble
 	w.AddSystemInterface(&systems.BattleboxSystem{}, battleboxable, notbattleboxable)
+
+	var characterbarable *systems.CharacterBarAble
+	var baddiebarable *systems.BaddieBarAble
+	var notbarable *systems.NotBarAble
+	w.AddSystemInterface(&systems.BarSystem{}, []interface{}{characterbarable, baddiebarable}, notbarable)
 	// SYSTEMS />
 
 	// < BACKGROUNDS
@@ -128,15 +134,6 @@ func (*IntroScene) Setup(u engo.Updater) {
 	// BACKGROUNDS />
 
 	// < BloodmouthGhost
-	bmgFont := &common.Font{
-		Size: 64,
-		FG:   color.Black,
-		URL:  files[0],
-	}
-	bmgFont.CreatePreloaded()
-	//    < sprite sheet
-	bmgSpritesheet := common.NewSpritesheetWithBorderFromFile(files[3], 64, 64, 1, 1)
-	//    sprite sheet />
 	//    < sounds
 	bmgLogClip := audio{BasicEntity: ecs.NewBasic()}
 	bmgLogClip.AudioComponent.Player, _ = common.LoadedPlayer(files[35])
@@ -144,13 +141,35 @@ func (*IntroScene) Setup(u engo.Updater) {
 	w.AddEntity(&bmgLogClip)
 	//    sounds />
 	//    < sprite
-	bmgSprite := baddieSprite{BasicEntity: ecs.NewBasic()}
-	bmgSprite.Drawable = bmgSpritesheet.Drawable(0)
-	bmgSprite.Width = bmgSprite.Drawable.Width()
-	bmgSprite.Height = bmgSprite.Drawable.Height()
-	bmgSprite.SetZIndex(2)
-	bmgSprite.SetCenter(engo.Point{X: 320, Y: 130})
-	w.AddEntity(&bmgSprite)
+	bmg := baddie{BasicEntity: ecs.NewBasic()}
+	bmg.SetZIndex(2)
+	bmg.SetCenter(engo.Point{X: 320, Y: 130})
+	bmg.BaddieComponent = systems.BaddieComponent{
+		Name:         "Blood-Mouthed Ghost!",
+		Phases:       make(map[string]systems.Phase),
+		CurrentPhase: "Start",
+		Clip:         bmgLogClip.Player,
+		HP:           200,
+		MaxHP:        200,
+		Spritesheet:  common.NewSpritesheetWithBorderFromFile(files[3], 64, 64, 1, 1),
+	}
+	bmg.Font = &common.Font{
+		Size: 64,
+		FG:   color.Black,
+		URL:  files[0],
+	}
+	bmg.Font.CreatePreloaded()
+	bmg.Drawable = bmg.Spritesheet.Drawable(0)
+	bmg.Width = bmg.Drawable.Width()
+	bmg.Height = bmg.Drawable.Height()
+	w.AddEntity(&bmg)
+
+	for _, sys := range w.Systems() {
+		switch system := sys.(type) {
+		case *systems.TargetSystem:
+			system.Add(&bmg.BasicEntity, &bmg.RenderComponent, &bmg.BaddieComponent)
+		}
+	}
 	//    sprite />
 	// BloodmouthGhost />
 
@@ -625,53 +644,8 @@ func (*IntroScene) Setup(u engo.Updater) {
 	// < Send a BMG Message
 	engo.Mailbox.Dispatch(systems.CombatLogMessage{
 		Msg:  "A blood-mouthed ghost has appearerated!",
-		Fnt:  bmgFont,
+		Fnt:  bmg.Font,
 		Clip: bmgLogClip.Player,
 	})
 	// Send a BMG Message />
-
-	// wyA := playerSelectableSprite{BasicEntity: ecs.NewBasic()}
-	// wyCard.AppendChild(&wyA.BasicEntity)
-	// wyA.Drawable, _ = common.LoadedSprite(files[31])
-	// wyA.Width = wyA.Drawable.Width()
-	// wyA.Height = wyA.Drawable.Height()
-	// wyA.SetZIndex(4)
-	// wyA.SetCenter(engo.Point{X: 553, Y: 319})
-	// w.AddEntity(&wyA)
-	// //        ACTION A />
-	// //        <ACTION B
-	// wyB := playerSelectableSprite{BasicEntity: ecs.NewBasic()}
-	// wyCard.AppendChild(&wyB.BasicEntity)
-	// wyB.Drawable, _ = common.LoadedSprite(files[29])
-	// wyB.Width = wyB.Drawable.Width()
-	// wyB.Height = wyB.Drawable.Height()
-	// wyB.SetZIndex(4)
-	// wyB.SetCenter(engo.Point{X: 604, Y: 319})
-	// w.AddEntity(&wyB)
-	// //        ACTION B />
-	// //        <ACTION X
-	// wyX := playerSelectableSprite{BasicEntity: ecs.NewBasic()}
-	// wyCard.AppendChild(&wyX.BasicEntity)
-	// wyX.Drawable, _ = common.LoadedSprite(files[30])
-	// wyX.Width = wyX.Drawable.Width()
-	// wyX.Height = wyX.Drawable.Height()
-	// wyX.SetZIndex(4)
-	// wyX.SetCenter(engo.Point{X: 553, Y: 343})
-	// w.AddEntity(&wyX)
-	// //        ACTION X />
-	// //        <ACTION Y
-	// wyY := playerSelectableSprite{BasicEntity: ecs.NewBasic()}
-	// wyCard.AppendChild(&wyY.BasicEntity)
-	// wyY.Drawable, _ = common.LoadedSprite(files[28])
-	// wyY.Width = wyY.Drawable.Width()
-	// wyY.Height = wyY.Drawable.Height()
-	// wyY.SetZIndex(4)
-	// wyY.SetCenter(engo.Point{X: 604, Y: 343})
-	// w.AddEntity(&wyY)
-	// //        ACTION Y />
-	// // WY />
-	//
-	// // < CursorComponentCallbacks
-	//
-	// // CursorComponentCallbacks />
 }

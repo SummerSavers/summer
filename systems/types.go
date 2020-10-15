@@ -17,3 +17,21 @@ type selection struct {
 	common.RenderComponent
 	CursorComponent
 }
+
+type charaBox struct {
+	ecs.BasicEntity
+	common.SpaceComponent
+	common.RenderComponent
+	BarComponent
+	NotPlayerSelectComponent
+	*CharacterComponent
+}
+
+type baddieBox struct {
+	ecs.BasicEntity
+	common.SpaceComponent
+	common.RenderComponent
+	BarComponent
+	NotPlayerSelectComponent
+	*BaddieComponent
+}

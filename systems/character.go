@@ -4,6 +4,7 @@ import "github.com/EngoEngine/engo/common"
 
 type CharacterComponent struct {
 	Name         string
+	AttackVerb   string
 	Abilities    []BattleBoxText
 	Items        []BattleBoxText
 	Acts         []BattleBoxText
@@ -13,9 +14,10 @@ type CharacterComponent struct {
 	BattleBox    common.Drawable
 	AIcon, BIcon *common.Texture
 	XIcon, YIcon *common.Texture
-	HP, MaxHP    int
-	MP, MaxMP    int
-	CastTime     int
+	HP, MaxHP    float32
+	MP, MaxMP    float32
+	CastAt       float32
+	CastTime     float32
 	CardSelected bool
 }
 

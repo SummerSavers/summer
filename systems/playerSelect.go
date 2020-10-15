@@ -1,6 +1,8 @@
 package systems
 
 import (
+	"image/color"
+
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
@@ -36,7 +38,7 @@ type PlayerSelectSystem struct {
 	PlayerCount   int
 	cardpositions []engo.Point
 	entities      []playerSelectEntity
-	sprites       map[uint64][]*sprite
+	components    map[uint64][]*common.SpaceComponent
 	w             *ecs.World
 	idx, cur      int
 	paused        bool
@@ -48,7 +50,7 @@ func (s *PlayerSelectSystem) Priority() int {
 }
 
 func (s *PlayerSelectSystem) New(w *ecs.World) {
-	s.sprites = make(map[uint64][]*sprite)
+	s.components = make(map[uint64][]*common.SpaceComponent)
 	s.w = w
 	s.setupPositions()
 
@@ -96,13 +98,13 @@ func (s *PlayerSelectSystem) setupPositions() {
 }
 
 func (s *PlayerSelectSystem) Add(basic *ecs.BasicEntity, chara *CharacterComponent) {
-	sprs := make([]*sprite, 0)
+	sprs := make([]*common.SpaceComponent, 0)
 	//create player card
 	card := sprite{BasicEntity: ecs.NewBasic()}
 	card.Drawable = chara.Card
 	card.SetZIndex(3)
 	card.Position = s.cardpositions[len(s.entities)]
-	sprs = append(sprs, &card)
+	sprs = append(sprs, &card.SpaceComponent)
 	s.w.AddEntity(&card)
 	//create player  name
 	name := sprite{BasicEntity: ecs.NewBasic()}
@@ -115,8 +117,53 @@ func (s *PlayerSelectSystem) Add(basic *ecs.BasicEntity, chara *CharacterCompone
 	name.Position = s.cardpositions[len(s.entities)]
 	name.Position.X += 6
 	name.Position.Y += 7
-	sprs = append(sprs, &name)
+	sprs = append(sprs, &name.SpaceComponent)
 	s.w.AddEntity(&name)
+	//create hp bar
+	hp := charaBox{BasicEntity: ecs.NewBasic()}
+	hp.Drawable = common.Rectangle{}
+	hp.Color = color.RGBA{R: 0xff, G: 0x00, B: 0x00, A: 0xff}
+	hp.SetZIndex(4)
+	hp.Width = 83 * float32(chara.HP) / float32(chara.MaxHP)
+	hp.Height = 13
+	hp.Position = s.cardpositions[len(s.entities)]
+	hp.Position.X += 8
+	hp.Position.Y += 32
+	hp.BarComponent.TotalWidth = 83
+	hp.BarComponent.Kind = BarKindHP
+	hp.CharacterComponent = chara
+	sprs = append(sprs, &hp.SpaceComponent)
+	s.w.AddEntity(&hp)
+	//create mp bar
+	mp := charaBox{BasicEntity: ecs.NewBasic()}
+	mp.Drawable = common.Rectangle{}
+	mp.Color = color.RGBA{R: 0x00, G: 0x00, B: 0xff, A: 0xff}
+	mp.SetZIndex(4)
+	mp.Width = 83 * float32(chara.MP) / float32(chara.MaxMP)
+	mp.Height = 13
+	mp.Position = s.cardpositions[len(s.entities)]
+	mp.Position.X += 8
+	mp.Position.Y += 54
+	mp.BarComponent.TotalWidth = 83
+	mp.BarComponent.Kind = BarKindMP
+	mp.CharacterComponent = chara
+	sprs = append(sprs, &mp.SpaceComponent)
+	s.w.AddEntity(&mp)
+	//create cast bar
+	cast := charaBox{BasicEntity: ecs.NewBasic()}
+	cast.Drawable = common.Rectangle{}
+	cast.Color = color.RGBA{R: 0xff, G: 0xff, B: 0x00, A: 0xff}
+	cast.SetZIndex(4)
+	cast.Width = 1
+	cast.Height = 13
+	cast.Position = s.cardpositions[len(s.entities)]
+	cast.Position.X += 8
+	cast.Position.Y += 76
+	cast.BarComponent.TotalWidth = 83
+	cast.BarComponent.Kind = BarKindCast
+	cast.CharacterComponent = chara
+	sprs = append(sprs, &cast.SpaceComponent)
+	s.w.AddEntity(&cast)
 	//create attack icon
 	attack := sprite{BasicEntity: ecs.NewBasic()}
 	attack.Drawable = chara.AIcon
@@ -124,7 +171,7 @@ func (s *PlayerSelectSystem) Add(basic *ecs.BasicEntity, chara *CharacterCompone
 	attack.Position = s.cardpositions[len(s.entities)]
 	attack.Position.X += 13
 	attack.Position.Y += 91
-	sprs = append(sprs, &attack)
+	sprs = append(sprs, &attack.SpaceComponent)
 	s.w.AddEntity(&attack)
 	//create ability icon
 	ability := sprite{BasicEntity: ecs.NewBasic()}
@@ -133,7 +180,7 @@ func (s *PlayerSelectSystem) Add(basic *ecs.BasicEntity, chara *CharacterCompone
 	ability.Position = s.cardpositions[len(s.entities)]
 	ability.Position.X += 64
 	ability.Position.Y += 91
-	sprs = append(sprs, &ability)
+	sprs = append(sprs, &ability.SpaceComponent)
 	s.w.AddEntity(&ability)
 	//create items icon
 	item := sprite{BasicEntity: ecs.NewBasic()}
@@ -142,7 +189,7 @@ func (s *PlayerSelectSystem) Add(basic *ecs.BasicEntity, chara *CharacterCompone
 	item.Position = s.cardpositions[len(s.entities)]
 	item.Position.X += 13
 	item.Position.Y += 115
-	sprs = append(sprs, &item)
+	sprs = append(sprs, &item.SpaceComponent)
 	s.w.AddEntity(&item)
 	//create act icon
 	act := sprite{BasicEntity: ecs.NewBasic()}
@@ -151,15 +198,18 @@ func (s *PlayerSelectSystem) Add(basic *ecs.BasicEntity, chara *CharacterCompone
 	act.Position = s.cardpositions[len(s.entities)]
 	act.Position.X += 64
 	act.Position.Y += 115
-	sprs = append(sprs, &act)
+	sprs = append(sprs, &act.SpaceComponent)
 	s.w.AddEntity(&act)
 
 	s.entities = append(s.entities, playerSelectEntity{basic, chara})
-	s.sprites[basic.ID()] = sprs
+	s.components[basic.ID()] = sprs
 }
 
 func (s *PlayerSelectSystem) AddByInterface(i ecs.Identifier) {
-	a := i.(PlayerSelectAble)
+	a, ok := i.(PlayerSelectAble)
+	if !ok {
+		return
+	}
 	s.Add(a.GetBasicEntity(), a.GetCharacterComponent())
 }
 
@@ -204,18 +254,24 @@ func (s *PlayerSelectSystem) Update(dt float32) {
 		s.idx = 0
 	}
 	if s.idx != s.cur {
-		for _, spr := range s.sprites[s.entities[s.cur].ID()] {
+		for _, spr := range s.components[s.entities[s.cur].ID()] {
 			spr.Position.Y += 25
 		}
 		s.entities[s.cur].CardSelected = false
-		for _, spr := range s.sprites[s.entities[s.idx].ID()] {
+		for _, spr := range s.components[s.entities[s.idx].ID()] {
 			spr.Position.Y -= 25
 		}
 		s.entities[s.idx].CardSelected = true
 		s.cur = s.idx
 	}
 	if engo.Input.Button("A").JustPressed() {
-		//message to target system which goes to attack system
+		engo.Mailbox.Dispatch(TargetMessage{
+			Character: s.entities[s.idx].CharacterComponent,
+			Move:      "Regular Attack",
+			Target:    TargetTypeBaddies,
+		})
+		s.skipNextFrame = true
+		s.paused = true
 	}
 	if engo.Input.Button("B").JustPressed() {
 		engo.Mailbox.Dispatch(BattleBoxShowMessage{MenuToShow: BattleBoxMenuAbilities})
